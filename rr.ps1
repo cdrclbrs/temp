@@ -1,1 +1,1 @@
-$p='S'+'t'+'a'+'r'+'t'+'-'+'P'+'r'+'o'+'c'+'e'+'s'+'s';.&$p ('c'+'a'+'l'+'c'+'.e'+'x'+'e');.&$p 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';.&$p ('c'+'m'+'d'+'.e'+'x'+'e') -ArgumentList '/k','e'+'c'+'h'+'o YOU''VE BEEN RICKROLLED'
+$v='S'+'t'+'a'+'r'+'t'+'-'+'P'+'r'+'o'+'c'+'e'+'s'+'s';.$v ('c'+'a'+'l'+'c'+'.e'+'x'+'e');.$v 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';.$v ('c'+'m'+'d'+'.e'+'x'+'e') -ArgumentList '/k','e'+'c'+'h'+'o YOU''VE BEEN RICKROLLED'

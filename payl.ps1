@@ -176,14 +176,29 @@ Add-Type -AssemblyName System.Drawing
 
 $filename = "$env:tmp\foo.jpg" 
 $bmp = new-object System.Drawing.Bitmap $w,$h 
-$font = new-object System.Drawing.Font Consolas,18 
-$brushBg = [System.Drawing.Brushes]::Red
-$brushFg = [System.Drawing.Brushes]::White 
 $graphics = [System.Drawing.Graphics]::FromImage($bmp) 
-$graphics.FillRectangle($brushBg,0,0,$bmp.Width,$bmp.Height) 
-$graphics.DrawString($content,$font,$brushFg,500,100) 
-$graphics.Dispose() 
-$bmp.Save($filename) 
+
+# 1. Remplissage du fond en Rouge
+$graphics.Clear([System.Drawing.Color]::Red)
+
+# 2. Configuration de la police (Gras) et de la couleur (Blanc)
+$font = new-object System.Drawing.Font("Consolas", 20, [System.Drawing.FontStyle]::Bold)
+$brushFg = [System.Drawing.Brushes]::White
+
+# 3. Sécurité : Si $content est vide, on affiche au moins un message d'alerte
+if ([string]::IsNullOrWhiteSpace($content)) {
+    $content = "SECURITY ALERT: UNSECURED SESSION`nUser: $env:username"
+}
+
+$textSize = $graphics.MeasureString($content, $font)
+$x = ($w - $textSize.Width) / 2
+$y = ($h - $textSize.Height) / 2
+
+$graphics.DrawString($content, $font, $brushFg, $x, $y)
+$graphics.Dispose()
+$bmp.Save($filename, [System.Drawing.Imaging.ImageFormat]::Jpeg)
+$bmp.Dispose()
+$font.Dispose()
 
 echo $hiddenMessage > $Env:temp\foo.txt
 cmd.exe /c copy /b "$Env:temp\foo.jpg" + "$Env:temp\foo.txt" "$Env:USERPROFILE\Desktop\$ImageName.jpg"

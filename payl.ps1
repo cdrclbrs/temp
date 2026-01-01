@@ -1,36 +1,43 @@
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+# On force la console en mode "Full Screen" ou grande taille pour l'ASCII
+$Host.UI.RawUI.WindowTitle = "FATAL ERROR - SYSTEM COMPROMISED"
+$Host.UI.RawUI.BackgroundColor = "Black"
+$Host.UI.RawUI.ForegroundColor = "Red"
+Clear-Host
 
-try {
-    Clear-Host
-    $Host.UI.RawUI.WindowTitle = "pawned "
-    
-    $troll = @(
-    "              ⣀⣠⠤⠶⠶⣖⡛⠛⠿⠿⠯⠭⠍⠉⣉⠛⠚⠛⠲⣄",
-    "        ⢀⡴⠋⠁⠀⡉⠁⢐⣒⠒⠈⠁⠀⠀⠀⠈⠁⢂⢅⡂⠀⠀⠘⣧",
-    "        ⣼⠀⠀⠀⠁⠀⠀⠀⠂⠀⠀⠀⠀⢀⣀⣤⣤⣄⡈⠈⠀⠀⠀⠘⣇",
-    "    ⢠⡾⠡⠄⠀⠀⠾⠿⠿⣷⣦⣤⠀⠀⣾⣋⡤⠿⠿⠿⠿⠆⠠⢀⣀⡒⠼⢷⣄",
-    "    ⣿⠊⠊⠶⠶⢦⣄⡄⠀⢀⣿⠀⠀⠀⠈⠁⠀⠀⠙⠳⠦⠶⠞⢋⣍⠉⢳⡄⠈⣧",
-    "    ⢹⣆⡂⢀⣿⠀⠀⡀⢴⣟⠁⠀⢀⣠⣘⢳⡖⠀⠀⣀⣠⡴⠞⠋⣽⠷⢠⠇⠀⣼",
-    "     ⢻⡀⢸⣿⣷⢦⣄⣀⣈⣳⣆⣀⣀⣤⣭⣴⠚⠛⠉⣹⣧⡴⣾⠋⠀⠀⣘⡼⠃",
-    "     ⢸⡇⢸⣷⣿⣤⣏⣉⣙⣏⣉⣹⣁⣀⣠⣼⣶⡾⠟⢻⣇⡼⠁⠀⠀⣰⠋",
-    "     ⢸⡇⠸⣿⡿⣿⢿⡿⢿⣿⠿⠿⣿⠛⠉⠉⢧⠀⣠⡴⠋⠀⠀⠀⣠⠇",
-    "     ⢸⠀⠀⠹⢯⣽⣆⣷⣀⣻⣀⣀⣿⣄⣤⣴⠾⢛⡉⢄⡢⢔⣠⠞⠁",
-    "     ⢸⠀⠀⠀⠢⣀⠀⠈⠉⠉⠉⠉⣉⣀⠠⣐⠦⠑⣊⡥⠞⠋",
-    "     ⢸⡀⠀⠁⠂⠀⠀⠀⠀⠀⠀⠒⠈⠁⣀⡤⠞⠋⠁",
-    "      ⠙⠶⢤⣤⣤⣤⣤⡤⠴⠖⠚⠛⠉⠁"
-    )
+$skull = @"
+     .... NO! ...                  ... MNO! ...
+   ..... MNO!! ...................... MNNOO! ...
+ ..... MMNO! ......................... MNNOO!! .
+.... MNOONNOO!   MMMMMMMMMMPPPOII!   MNNO!!!! .
+ ... !O! NNO! MMMMMMMMMMMMMPPPOOOII!! NO! ....
+    ...... ! MMMMMMMMMMMMMPPPPOOOOIII! ! ...
+   ........ MMMMMMMMMMMMPPPPPOOOOOOII!! .....
+   ........ MMMMMOOOOOOPPPPPPPPOOOOMII! ...
+    ....... MMMMM..    OPPMMP    .,OMI! ....
+     ...... MMMM::   o.,OPMP,.o   ::I!! ...
+         .... NNM:::.,,OOPM!P,.::::!! ....
+          .. MMNNNNNOOOOPMO!!IIPPO!!O! .....
+         ... MMMMMNNNNOO:!!:!!IPPPPOO! ....
+           .. MMMMMNNOOMMNNIIIPPPOO!! ......
+          ...... MMMONNMMNNNIIIOO!..........
+       ....... MN MOMMMNNNIIIIIO! OO ..........
+    ......... MNO! IiiiiiiiiiiiI OOOO ...........
+  ...... NNN.MNO! . O!!!!!!!!!O . OONO NO! ........
+   .... MNNNNNO! ...OOOOOOOOOOO .  MMNNON!........
+   ...... MNNNNO! .. PPPPPPPPP .. MMNON!........
+      ...... OO! ................. ON! .......
+         ................................
+"@
 
-    foreach ($line in $troll) { Write-Host $line -ForegroundColor Red }
-    
-    Write-Host "`n      ====================================" -ForegroundColor White
-    Write-Host "      #           PAWNED !!!             #" -ForegroundColor White -BackgroundColor Red
-    Write-Host "      ====================================`n" -ForegroundColor White
-    
-} catch {
-    Write-Host "Erreur : $($_.Exception.Message)" -ForegroundColor Yellow
-}
+Write-Host $skull
 
+# Message centré
+Write-Host "`n      ######################################" -ForegroundColor Yellow
+Write-Host "      #             PAWNED!!!              #" -ForegroundColor White -BackgroundColor Red
+Write-Host "      ######################################`n" -ForegroundColor Yellow
+
+# Boucle infinie pour empêcher la fermeture automatique
+Write-Host "Appuyez sur une touche pour quitter (ou pas...)..."
 while($true) {
-    Read-Host
     Start-Sleep -Seconds 1
 }

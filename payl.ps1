@@ -1,5 +1,5 @@
 # On force la console en mode "Full Screen" ou grande taille pour l'ASCII
-$Host.UI.RawUI.WindowTitle = "FATAL ERROR - SYSTEM COMPROMISED"
+$Host.UI.RawUI.WindowTitle = "Pawned"
 $Host.UI.RawUI.BackgroundColor = "Black"
 $Host.UI.RawUI.ForegroundColor = "Red"
 Clear-Host

@@ -1,4 +1,4 @@
-$Message = "PAWNED!!!`n`n Script executed.`n Protect USB ports!."
+$Message = "PAWNED!!!`n`n Script executed.`n success!."
 $ImageName = "security-alert"
 $ImgPath = "$env:temp\alert.jpg"
 
